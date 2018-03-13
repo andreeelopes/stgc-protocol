@@ -1,7 +1,7 @@
-# First SRSC Project README
+## First SRSC Project README
 
-##Authors:
+####Authors:
 
-	### *André Lopes nº 45617
-	### *Nelson Coquenim nº 45694
-	### *Simão Dolores nº 
+	* André Lopes nº 45617
+	* Nelson Coquenim nº 45694
+	* Simão Dolores nº 
