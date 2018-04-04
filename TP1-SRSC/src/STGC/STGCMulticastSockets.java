@@ -220,43 +220,6 @@ public class STGCMulticastSockets extends MulticastSocket{
 		cipher = Cipher.getInstance(cipherConfig, cipherProvider);
 	  }
 
-/*
-	private void readConfig() throws Exception {
-		
-		String macProvider=null;
-		String cipherProvider=null;
-		String cipherConfig=null;
-		String macCipher=null;
-		Properties prop = new Properties();
-		// the configuration file name
-		String fileName = "ciphersuite.conf";
-		ClassLoader classLoader = STGCMulticastSockets.class.getClassLoader();
-
-		// Make sure that the configuration file exists
-		URL res = Objects.requireNonNull(classLoader.getResource(fileName),
-				"Can't find configuration file ciphersuite.conf");
-
-		InputStream is = new FileInputStream(res.getFile());
-
-		// load the properties file
-		prop.load(is);
-
-		macProvider = prop.getProperty("macProvider");
-		macCipher = prop.getProperty("macCipher");
-		cipherProvider = prop.getProperty("cipherProvider");
-		cipherConfig = prop.getProperty("cipherConfig");
-
-		//nao sei o que fazer com isto
-		byte[] ivBytes = new byte[] {
-				0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-				0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15 
-		};
-
-		ivSpec = new IvParameterSpec(ivBytes);
-		mac = Mac.getInstance(macCipher, macProvider);
-		cipher = Cipher.getInstance(cipherConfig, cipherProvider);
-	}
- */
 	private byte[] createHeaderAndAddMessage(byte[] payload) throws Exception {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		DataOutputStream dataStream = new DataOutputStream(byteStream);
