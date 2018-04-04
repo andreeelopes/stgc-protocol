@@ -60,7 +60,7 @@ public class MulticastChat extends Thread {
     msocket.setSoTimeout(DEFAULT_SOCKET_TIMEOUT_MILLIS);
     msocket.setTimeToLive(ttl);
     msocket.joinGroup(group);
-
+   // System.out.println(msocket.getLocalAddress()+ " "+ msocket.getInterface());
     // start receive thread and send multicast join message
     start();
     sendJoin();
