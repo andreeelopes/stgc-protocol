@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<rooms>
+	<room ip="224.10.10.10">
+		<macProvider>BC</macProvider>
+		<macCipher>DES</macCipher>
+		<cipherConfig>AES/CBC/PKCS7Padding</cipherConfig>
+		<cipherProvider>BC</cipherProvider>
+	</room>
+</rooms>

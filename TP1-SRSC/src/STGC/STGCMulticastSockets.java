@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,14 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStore.PasswordProtection;
@@ -29,6 +38,7 @@ public class STGCMulticastSockets extends MulticastSocket{
 	private IvParameterSpec ivSpec;
 	Key macKey;
 	Mac mac;
+	private InetAddress group;
 
 
 	public STGCMulticastSockets(int port) throws IOException {
@@ -51,11 +61,23 @@ public class STGCMulticastSockets extends MulticastSocket{
 			macKey = ((KeyStore.SecretKeyEntry) entry2).getSecretKey();
 
 			//ler o ficheiro de configurações
-			readConfig();
+
 		}catch(Exception e) {
 
 		}
 
+	}
+	public void joinGroup(InetAddress mcastaddr)
+            throws IOException{
+		super.joinGroup(mcastaddr);
+		this.group=mcastaddr;
+		try {
+			this.readConfig();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	public void send(DatagramPacket packet) {
 		
@@ -141,7 +163,64 @@ public class STGCMulticastSockets extends MulticastSocket{
 		
 		return messagePlain;
 	}
+	private void readConfig() throws Exception {
 
+		String macProvider=null;
+		String cipherProvider=null;
+		String cipherConfig=null;
+		String macCipher=null;
+	    try {
+
+		File fXmlFile = new File("ciphersuite.xml");
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(fXmlFile);
+		//optional, but recommended
+		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+		doc.getDocumentElement().normalize();
+
+		System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
+				
+		NodeList nList = doc.getElementsByTagName("room");
+				
+		System.out.println("----------------------------");
+
+		for (int temp = 0; temp < nList.getLength(); temp++) {
+
+			Node nNode = nList.item(temp);
+					
+			System.out.println("\nCurrent Element :" + nNode.getNodeName());
+					
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+				Element eElement = (Element) nNode;
+
+				String roomIP= eElement.getAttribute("ip");
+				System.out.println(roomIP+" "+ group.getHostAddress());
+				if(roomIP.equals(group.getHostAddress())) {
+					
+					macProvider=eElement.getElementsByTagName("macProvider").item(0).getTextContent();
+					cipherProvider=eElement.getElementsByTagName("cipherProvider").item(0).getTextContent();
+					cipherConfig=eElement.getElementsByTagName("cipherConfig").item(0).getTextContent();
+					macCipher=eElement.getElementsByTagName("macCipher").item(0).getTextContent();
+				}
+
+			}
+		}
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
+	    byte[] ivBytes= new byte[] {
+				0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+				0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15 
+		};
+		
+		ivSpec = new IvParameterSpec(ivBytes);
+		mac = Mac.getInstance(macCipher, macProvider);
+		cipher = Cipher.getInstance(cipherConfig, cipherProvider);
+	  }
+
+/*
 	private void readConfig() throws Exception {
 		
 		String macProvider=null;
@@ -177,6 +256,7 @@ public class STGCMulticastSockets extends MulticastSocket{
 		mac = Mac.getInstance(macCipher, macProvider);
 		cipher = Cipher.getInstance(cipherConfig, cipherProvider);
 	}
+ */
 	private byte[] createHeaderAndAddMessage(byte[] payload) throws Exception {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		DataOutputStream dataStream = new DataOutputStream(byteStream);
