@@ -20,6 +20,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.bouncycastle.util.Arrays;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,6 +40,8 @@ public class STGCMulticastSockets extends MulticastSocket{
 	Key macKey;
 	Mac mac;
 	private InetAddress group;
+	private byte[] version;
+	private byte[] type;
 
 
 	public STGCMulticastSockets(int port) throws IOException {
@@ -115,6 +118,8 @@ public class STGCMulticastSockets extends MulticastSocket{
 
 			e.printStackTrace();
 		}
+		if(messagedata==null)
+			return;
 		System.arraycopy(messagedata, 0, buffer, 0, messagedata.length);
 
 		packet.setData(buffer);
@@ -142,15 +147,27 @@ public class STGCMulticastSockets extends MulticastSocket{
 	public byte[] desencrypt(byte[] message,int lenght) throws Exception {
 		
 		cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
-		message = ReadMessage(message);
-		byte[] plainText = cipher.doFinal(message);
+		//message = ReadMessage(message);
+		DataInputStream istream = new DataInputStream(new ByteArrayInputStream(message));
+		byte version = istream.readByte();
+		if(version!= this.version[0])
+			return null;
+		istream.readByte();
+		byte type = istream.readByte();
+		istream.readByte();
+		int size = istream.readShort();
+		
+		byte[] data = new byte[size];
+		istream.readFully(data);
+		if(type==this.type[0]) {
+		byte[] plainText = cipher.doFinal(data);
 		int messageLength = plainText.length - mac.getMacLength();
 
 		// Verificaao Mac
 
 		mac.init(macKey);
 		mac.update(plainText, 0, messageLength);
-
+		
 		byte[] messageHash = new byte[mac.getMacLength()];
 		System.arraycopy(plainText, messageLength, messageHash, 0, messageHash.length);
 
@@ -160,9 +177,13 @@ public class STGCMulticastSockets extends MulticastSocket{
 		if(!MessageDigest.isEqual(mac.doFinal(), messageHash)){
 			System.exit(1);
 		}
-		
 		return messagePlain;
-	}
+
+		}
+		else {
+			return data;
+		}
+			}
 	private void readConfig() throws Exception {
 
 		String macProvider=null;
@@ -224,9 +245,9 @@ public class STGCMulticastSockets extends MulticastSocket{
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		DataOutputStream dataStream = new DataOutputStream(byteStream);
 
-		byte[] version = new byte[] {0x11};
+		version = new byte[] {0x11};
 		byte[] space = new byte[] {0x00};
-		byte[] type = new byte[] {0x01};// 0x01 para app 0x02 para o que seja
+		type = new byte[] {0x01};// 0x01 para app 0x02 para o que seja
 		dataStream.write(version);
 		dataStream.write(space);
 		dataStream.write(type);
@@ -243,6 +264,9 @@ public class STGCMulticastSockets extends MulticastSocket{
 		
 		DataInputStream istream = new DataInputStream(new ByteArrayInputStream(messagedata));
 		byte version = istream.readByte();
+		System.out.println(version!= this.version[0]);
+		if(version!= this.version[0])
+			return null;
 		istream.readByte();
 		byte type = istream.readByte();
 		istream.readByte();
