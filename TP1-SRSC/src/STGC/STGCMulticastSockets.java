@@ -30,6 +30,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStore.PasswordProtection;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 
 
 public class STGCMulticastSockets extends MulticastSocket{
@@ -42,11 +43,12 @@ public class STGCMulticastSockets extends MulticastSocket{
 	private InetAddress group;
 	private byte[] version;
 	private byte[] type;
-
-
+	private static final int TIMETOEXPIRE= 10000;
+	private MyCache cache;
 	public STGCMulticastSockets(int port) throws IOException {
 		
 		super(port);
+		cache=new MyCache();
 		try {
 			KeyStore keyStore = KeyStore.getInstance("JCEKS");
 			// Keystore where symmetric keys are stored (type JCEKS)
@@ -128,18 +130,26 @@ public class STGCMulticastSockets extends MulticastSocket{
 	public byte[] encrypt(byte[] message) throws Exception {
 
 		cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
+		int nonceC = new SecureRandom().nextInt();
 
-		byte[] cipherText = new byte[cipher.getOutputSize(message.length + mac.getMacLength())];
-
-		int ctLength = cipher.update(message, 0, message.length, cipherText, 0);
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		DataOutputStream dataStream = new DataOutputStream(byteStream);
+		dataStream.writeInt(nonceC);
+		dataStream.write(message);
 
 		// Parte do MAC
 
 		mac.init(macKey);
+		mac.update(Utils.toByteArray(nonceC));
 		mac.update(message);
+		byte[] machash=mac.doFinal();
+		System.out.println(Utils.toHex(machash));
+		dataStream.write(machash);
+		dataStream.close();
+		byte[] Text = byteStream.toByteArray();
 
-		ctLength += cipher.doFinal(mac.doFinal(), 0, mac.getMacLength(), cipherText, ctLength);
-
+		byte[] cipherText=cipher.doFinal(Text);
+		//System.out.println(Utils.toHex(plainText));
 		byte[] headerAndPayload = createHeaderAndAddMessage(cipherText);
 		return headerAndPayload;
 
@@ -161,21 +171,34 @@ public class STGCMulticastSockets extends MulticastSocket{
 		istream.readFully(data);
 		if(type==this.type[0]) {
 		byte[] plainText = cipher.doFinal(data);
-		int messageLength = plainText.length - mac.getMacLength();
-
+		istream = new DataInputStream(new ByteArrayInputStream(plainText));
+		
+		int nonce=istream.readInt();
+		if(!cache.isValid(nonce)) {
+			return null;
+		}
+		else {
+			cache.add(nonce, TIMETOEXPIRE);
+		}
+		int messageLength = (plainText.length-4) - mac.getMacLength();
+		
 		// Verificaao Mac
 
 		mac.init(macKey);
-		mac.update(plainText, 0, messageLength);
+		mac.update(Utils.toByteArray(nonce));
+		byte[] messagePlain =new byte[messageLength];
+		System.arraycopy(plainText, 4, messagePlain, 0, messageLength);
+		mac.update(messagePlain);
+	
 		
+
 		byte[] messageHash = new byte[mac.getMacLength()];
-		System.arraycopy(plainText, messageLength, messageHash, 0, messageHash.length);
+		System.arraycopy(plainText, messageLength+4, messageHash, 0, messageHash.length);
 
-		byte[] messagePlain =new byte[lenght];
-		System.arraycopy(plainText, 0, messagePlain, 0, messageLength);
+		byte[] machash= mac.doFinal();
 
-		if(!MessageDigest.isEqual(mac.doFinal(), messageHash)){
-			System.exit(1);
+		if(!MessageDigest.isEqual(machash, messageHash)){
+			return null;
 		}
 		return messagePlain;
 
