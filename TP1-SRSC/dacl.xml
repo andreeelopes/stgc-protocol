@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<groups>
+	<group ip="224.10.10.10">
+		<user id="jose"></user>
+		<user id="maria"></user>
+	</group>
+	<group ip="224.20.20.20">
+		<user id="maria"></user>
+		<user id="toze"></user>
+	</group>
+</groups>

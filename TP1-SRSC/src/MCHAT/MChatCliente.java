@@ -172,7 +172,7 @@ public class MChatCliente extends JFrame implements MulticastChatEventListener
 
 	// Configuracao do grupo multicast da sessao de chat na interface do cliente
 	public void join(String username, InetAddress group, int port, 
-			int ttl) throws IOException {
+			int ttl, String pwd) throws IOException {
 		
 		setTitle("CHAT MulticastIP " + username + "@" + group.getHostAddress() 
 		+ ":" + port + " [TTL=" + ttl + "]");
@@ -180,7 +180,7 @@ public class MChatCliente extends JFrame implements MulticastChatEventListener
 
 
 		// Criar sessao de chat multicast
-		chat = new MulticastChat(username, group, port, ttl, this);
+		chat = new MulticastChat(username, group, port, ttl, this, pwd );
 	} 
 
 	protected void log(final String message) {
@@ -305,14 +305,15 @@ public class MChatCliente extends JFrame implements MulticastChatEventListener
 
 	// Command-line invocation expecting three arguments
 	public static void main(String[] args) {
-		if ((args.length != 3) && (args.length != 4)) {
+		if ((args.length != 4) && (args.length != 5)) {
 			System.err.println("Utilizar: MChatCliente " 
-					+ "<nickusername> <grupo IPMulticast> <porto> { <ttl> }");
+					+ "<nickusername> <grupo IPMulticast> <porto> <password> { <ttl> }");  
 			System.err.println("       - TTL default = 1");
 			System.exit(1);
 		} 
-
+		
 		String username = args[0];
+		String pwd = args[3];
 		InetAddress group = null;
 		int port = -1;
 		int ttl = 1;
@@ -338,11 +339,11 @@ public class MChatCliente extends JFrame implements MulticastChatEventListener
 			System.exit(1);
 		} 
 
-		if (args.length >= 4) {
+		if (args.length >= 5) {
 			try {
-				ttl = Integer.parseInt(args[3]);
+				ttl = Integer.parseInt(args[4]);
 			} catch (NumberFormatException e) {
-				System.err.println("TTL invalido: " + args[3]);
+				System.err.println("TTL invalido: " + args[4]);
 				System.exit(1); 
 			} 
 		} 
@@ -352,7 +353,7 @@ public class MChatCliente extends JFrame implements MulticastChatEventListener
 			frame.setSize(800, 300);
 			frame.setVisible( true);
 
-			frame.join(username, group, port, ttl);
+			frame.join(username, group, port, ttl, pwd);
 		} catch (Throwable e) {
 			System.err.println("Erro ao iniciar a frame: " + e.getClass().getName() 
 					+ ": " + e.getMessage());

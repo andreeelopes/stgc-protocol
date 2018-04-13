@@ -7,7 +7,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import STGC.STGCMulticastSockets;
+import STGC.STGCMulticastSocket;
 
 public class MulticastChat extends Thread {
 
@@ -30,7 +30,7 @@ public class MulticastChat extends Thread {
 	// Multicast socket used to send and receive multicast protocol PDUs
 	// Socket Multicast usado para enviar e receber mensagens 
 	// no ambito das operacoes que tem lugar no Chat
-	protected STGCMulticastSockets msocket;
+	protected STGCMulticastSocket msocket;
 
 	// Username / User-Nick-Name do Chat
 	protected String username;
@@ -48,7 +48,7 @@ public class MulticastChat extends Thread {
 
 	public MulticastChat(String username, InetAddress group, int port, 
 			int ttl, 
-			MulticastChatEventListener listener) throws IOException {
+			MulticastChatEventListener listener, String pwd) throws IOException {
 
 		this.username = username;
 		this.group = group;
@@ -56,9 +56,11 @@ public class MulticastChat extends Thread {
 		isActive = true;
 
 		// create & configure multicast socket
-		msocket = new STGCMulticastSockets(port);
+		msocket = new STGCMulticastSocket(port, group, InetAddress.getByName("239.255.255.255"), 1800, username, pwd);
 		msocket.setSoTimeout(DEFAULT_SOCKET_TIMEOUT_MILLIS);
 		msocket.setTimeToLive(ttl);
+		
+		//InetAddress ipmcApp, InetAddress ipmcAS, int portAS, String id, String pwd
 		msocket.joinGroup(group);
 
 		// start receive thread and send multicast join message

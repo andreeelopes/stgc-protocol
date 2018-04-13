@@ -4,6 +4,8 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
+import STGC.STGCMulticastSocket;
+
 public class MulticastSender {
 
     public static void main(String[] args ) throws Exception {
@@ -23,7 +25,8 @@ public class MulticastSender {
 	System.exit(0) ;
     }
 
-    MulticastSocket ms = new MulticastSocket() ;
+    STGCMulticastSocket ms = new STGCMulticastSocket(port, group, InetAddress.getByName("239.255.255.255"), 1800, "maria", "benfica");
+
     do {
         String msgsecret="topcsecret message, sent on: ";
         String msgdate = new Date().toString();
