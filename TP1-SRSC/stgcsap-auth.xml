@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+	<cipherSuite >PBEWITHSHA256AND192BITAES-CBC-BC</cipherSuite>
+	<macAlgorithm >HMacMD5</macAlgorithm>
+	<macProvider >BC</macProvider>
+	<cipherProvider >BC</cipherProvider>
+	<macKHashAlgorithm>MD5</macKHashAlgorithm>
+	<pwdHashAlgorithm>SHA-512</pwdHashAlgorithm>
+</config>

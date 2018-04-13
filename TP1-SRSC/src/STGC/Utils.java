@@ -1,9 +1,6 @@
 package STGC;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -20,7 +17,7 @@ import javax.crypto.spec.IvParameterSpec;
  * Contem varias funcoes de conversao de formatos como a seguir se documenta
  */
 public class Utils {
-	private static String	digits = "0123456789abcdef";
+	private static String digits = "0123456789abcdef";
 
 	/**
 	 * Retorna string hexadecimal a partir de um byte array de certo tamanho
@@ -152,6 +149,21 @@ public class Utils {
 		System.arraycopy(b, 0, c, a.length, b.length);
 
 		return c;
+	}
+	
+	public static String getStringFromDigest(byte[] hash) {
+		StringBuffer hexString = new StringBuffer();
+
+		for (int i = 0; i < hash.length; i++) {
+		    if ((0xff & hash[i]) < 0x10) {
+		        hexString.append("0"
+		                + Integer.toHexString((0xFF & hash[i])));
+		    } else {
+		        hexString.append(Integer.toHexString(0xFF & hash[i]));
+		    }
+		}
+		
+		return hexString.toString().toUpperCase();
 	}
 
 

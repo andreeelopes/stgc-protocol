@@ -4,6 +4,8 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
+import STGC.STGCMulticastSocket;
+
 public class MulticastReceiver {
 
     public static void main(String[] args ) throws Exception {
@@ -20,7 +22,7 @@ public class MulticastReceiver {
 	System.exit(0) ;
     }
 
-    MulticastSocket rs = new MulticastSocket(port) ;
+    STGCMulticastSocket rs = new STGCMulticastSocket(port, group, InetAddress.getByName("239.255.255.255"), 1800, "jose", "sporting") ;
 
     rs.joinGroup(group);
 

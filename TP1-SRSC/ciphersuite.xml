@@ -1,9 +1,23 @@
 <?xml version="1.0"?>
-<rooms>
-	<room ip="224.10.10.10">
-		<macProvider>BC</macProvider>
-		<macCipher>DES</macCipher>
+<groups>
+	<group ip="224.10.10.10">
+		<mackProvider>BC</mackProvider>
+		<mackCipher>HMacSHA1</mackCipher>
+		<cipherConfig>AES/ECB/PKCS5Padding</cipherConfig>
+		<cipherProvider>BC</cipherProvider>
+		<keySize>192</keySize>
+		<keyValue>*</keyValue>
+		<mackKeySize>64</mackKeySize>
+		<mackKeyValue>*</mackKeyValue>
+	</group>
+	<group ip="224.20.20.20">
+		<mackProvider>BC</mackProvider>
+		<mackCipher>DES</mackCipher>
 		<cipherConfig>AES/CBC/PKCS7Padding</cipherConfig>
 		<cipherProvider>BC</cipherProvider>
-	</room>
-</rooms>
+		<keySize>192</keySize>
+		<keyValue>*</keyValue>
+		<mackKeySize>64</mackKeySize>
+		<mackKeyValue>*</mackKeyValue>
+	</group>
+</groups>
